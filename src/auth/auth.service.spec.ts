@@ -19,6 +19,7 @@ describe('AuthService', () => {
   };
   const mockJwtService = {
     sign: jest.fn().mockReturnValue('fake-jwt-token'),
+    verifyAsync: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -57,6 +58,7 @@ describe('AuthService', () => {
         expect.any(String),
       );
       expect(result.access_token).toBe('fake-jwt-token');
+      expect(result.refresh_token).toBe('fake-jwt-token');
       expect(result.user).toEqual({ id: '507f1f77bcf86cd799439011', email: 'a@b.com' });
     });
 
@@ -85,6 +87,7 @@ describe('AuthService', () => {
       const result = await service.login('a@b.com', 'password123');
 
       expect(result.access_token).toBe('fake-jwt-token');
+      expect(result.refresh_token).toBe('fake-jwt-token');
       expect(result.user.email).toBe('a@b.com');
       spy.mockRestore();
     });
@@ -115,6 +118,55 @@ describe('AuthService', () => {
     });
   });
 
+  describe('refresh', () => {
+    it('should return new access and refresh tokens when refresh token is valid', async () => {
+      mockJwtService.verifyAsync.mockResolvedValue({
+        sub: '507f1f77bcf86cd799439011',
+        email: 'a@b.com',
+        type: 'refresh',
+      });
+      mockUsersService.findById.mockResolvedValue({
+        _id: '507f1f77bcf86cd799439011',
+        email: 'a@b.com',
+      } as any);
+
+      const result = await service.refresh('valid-refresh-token');
+
+      expect(result.access_token).toBe('fake-jwt-token');
+      expect(result.refresh_token).toBe('fake-jwt-token');
+      expect(mockJwtService.verifyAsync).toHaveBeenCalledWith('valid-refresh-token');
+    });
+
+    it('should throw when refresh token is invalid or expired', async () => {
+      mockJwtService.verifyAsync.mockRejectedValue(new Error('invalid token'));
+
+      await expect(service.refresh('invalid-token')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw when user no longer exists', async () => {
+      mockJwtService.verifyAsync.mockResolvedValue({
+        sub: '507f1f77bcf86cd799439011',
+        email: 'a@b.com',
+        type: 'refresh',
+      });
+      mockUsersService.findById.mockResolvedValue(null);
+
+      await expect(service.refresh('valid-refresh-token')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw when token type is not refresh', async () => {
+      mockJwtService.verifyAsync.mockResolvedValue({
+        sub: '507f1f77bcf86cd799439011',
+        email: 'a@b.com',
+        type: 'access',
+      });
+
+      await expect(service.refresh('access-token-used-as-refresh')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+  });
+
   describe('validateUser', () => {
     it('should return user when found', async () => {
       const user = { _id: '507f1f77bcf86cd799439011', email: 'a@b.com' } as any;
@@ -123,6 +175,7 @@ describe('AuthService', () => {
       const result = await service.validateUser({
         sub: '507f1f77bcf86cd799439011',
         email: 'a@b.com',
+        type: 'access',
       });
 
       expect(result).toEqual({ id: '507f1f77bcf86cd799439011', email: 'a@b.com' });
@@ -134,6 +187,7 @@ describe('AuthService', () => {
       const result = await service.validateUser({
         sub: '507f1f77bcf86cd799439011',
         email: 'a@b.com',
+        type: 'access',
       });
 
       expect(result).toBeNull();

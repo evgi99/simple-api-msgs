@@ -7,7 +7,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
-import { DEFAULT_JWT_SECRET } from '../common/constants';
+import { DEFAULT_JWT_SECRET, ACCESS_TOKEN_EXPIRY } from '../common/constants';
 
 function getJwtSecret(config: ConfigService): string {
   const secret = config.get<string>('JWT_SECRET') || DEFAULT_JWT_SECRET;
@@ -28,7 +28,7 @@ function getJwtSecret(config: ConfigService): string {
       useFactory: (config: ConfigService) => ({
         secret: getJwtSecret(config),
         signOptions: {
-          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '7d') as SignOptions['expiresIn'],
+          expiresIn: (config.get<string>('JWT_ACCESS_EXPIRES_IN') || ACCESS_TOKEN_EXPIRY) as SignOptions['expiresIn'],
         },
       }),
       inject: [ConfigService],

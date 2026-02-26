@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.git
+.env
+.env.local
+*.log
+npm-debug.log*
+.DS_Store
+*.md
+test
+jest.config.cjs
+jest.e2e.config.cjs
+.cursor

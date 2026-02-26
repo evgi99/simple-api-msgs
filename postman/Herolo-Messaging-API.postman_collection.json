@@ -1,0 +1,168 @@
+{
+  "info": {
+    "name": "Herolo Messaging API",
+    "description": "REST API for the Herolo messaging backend. Set {{baseUrl}} in environment (e.g. http://localhost:3000 for local, or your deployed URL). After Login or Register, the token is saved to {{access_token}} for use in message endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "access_token", "value": "" },
+    { "key": "receiverId", "value": "" },
+    { "key": "messageId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health & Metrics",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health",
+            "description": "Check API and database connectivity."
+          }
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/metrics",
+            "description": "Prometheus metrics (no auth)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', json.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Create a new user. Saves access_token to collection variable for subsequent requests."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', json.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Login with email/password. Saves access_token to collection variable."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Write message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('messageId', json._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": \"{{receiverId}}\",\n  \"subject\": \"Hello\",\n  \"body\": \"This is the message body.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/messages",
+            "description": "Send a message to another user. Set receiverId (Mongo ObjectId of the receiver user) in collection or environment."
+          }
+        },
+        {
+          "name": "Get all messages",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{baseUrl}}/api/messages",
+            "description": "Get all messages for the current user (sent + received, excluding deleted)."
+          }
+        },
+        {
+          "name": "Get unread messages",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{baseUrl}}/api/messages/unread",
+            "description": "Get all unread messages for the current user (as receiver)."
+          }
+        },
+        {
+          "name": "Read message",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{baseUrl}}/api/messages/{{messageId}}",
+            "description": "Get a single message by ID. If you are the receiver, it is marked as read. Use messageId from Write message response or list."
+          }
+        },
+        {
+          "name": "Delete message",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{baseUrl}}/api/messages/{{messageId}}",
+            "description": "Soft-delete the message for the current user (as sender or receiver)."
+          }
+        }
+      ]
+    }
+  ]
+}

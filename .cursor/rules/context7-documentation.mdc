@@ -1,0 +1,22 @@
+---
+description: Use Context7 MCP proactively for docs, code generation, and setup
+alwaysApply: true
+---
+
+# Context7 MCP – Proactive Documentation and Setup
+
+Use the **Context7 MCP** (documentation lookup) proactively whenever the task involves any of the following. Do not wait for the user to ask for documentation or examples.
+
+## When to use Context7 MCP
+
+- **Library or API documentation** – Looking up how a library, framework, or API works, or verifying current APIs and types.
+- **Code generation** – Generating code that depends on a specific library, framework, or SDK (e.g. NestJS, React, Prisma, database clients).
+- **Setup or configuration** – Installing, configuring, or integrating a library, tool, or service (e.g. env setup, config files, build steps).
+
+## How to apply
+
+- Prefer fetching up-to-date docs or examples via Context7 **before** writing code or giving setup steps.
+- Use it at the start of relevant tasks instead of relying only on prior knowledge.
+- If the user mentions a library, framework, or “how do I…?” for setup or usage, use Context7 to get current, accurate information.
+
+You do not need the user to explicitly say “use Context7” or “look up the docs”; use it whenever the task clearly fits the cases above.

@@ -1,0 +1,39 @@
+---
+description: Security mindset and practices for backend development
+alwaysApply: true
+---
+
+# Security Mindset
+
+Apply these practices in all backend code, APIs, and data handling.
+
+## Secrets and Credentials
+
+- **Never hardcode secrets** (API keys, passwords, tokens, connection strings). Always use environment variables or a secrets manager.
+- **Never log or print** real credentials, PII, or production data. Redact or mask in logs (e.g. last 4 digits, `***`).
+- Validate that `.env` and secret files are in `.gitignore` and never committed.
+
+## Data and Queries
+
+- **Review all generated SQL and queries** for injection surface area. Prefer parameterized queries / prepared statements; never concatenate user input into SQL.
+- Validate and sanitize all **user input** (body, query, headers). Use DTOs with class-validator; reject unknown or oversized payloads.
+- Return minimal data in responses; avoid exposing internal IDs, stack traces, or implementation details in production.
+
+## Authentication and Authorization
+
+- Assume **deny by default**: enforce auth on protected routes and check permissions per resource.
+- Use secure session/token handling (httpOnly cookies, short-lived tokens, secure comparison for secrets).
+- Do not rely on client-supplied identity (e.g. user ID in body); derive from authenticated context.
+
+## Operational Security
+
+- Use **HTTPS** in production; set secure headers (e.g. HSTS, CSP, X-Content-Type-Options).
+- Prefer **allowlists** over blocklists (e.g. CORS, allowed redirect URLs).
+- Keep dependencies updated; audit for known vulnerabilities (e.g. `npm audit`).
+- In **error handlers**, avoid leaking internal details to clients; log full context server-side only.
+
+## Quick Checks
+
+- No `console.log` or logger output of passwords, tokens, or full PII.
+- No raw string interpolation in SQL; use query builder parameters or ORM.
+- No secrets in code, config files in repo, or in error messages to the client.
